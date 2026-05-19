@@ -20,10 +20,10 @@ router = APIRouter(
     tags=["Students"]
 )
 
-# 1. Crear un estudiante (POST /students) [cite: 37, 40]
+# 1. Crear un estudiante (POST /students)
 @router.post("/", response_model=StudentResponse, status_code=status.HTTP_201_CREATED)
 def create_student(student_data: StudentCreate, db: Session = Depends(get_db)):
-    # Validar si el DNI ya existe (Debe ser único) [cite: 29, 86]
+    # Validar si el DNI ya existe (Debe ser único)
     db_student = db.query(StudentDB).filter(StudentDB.dni == student_data.dni).first()
     if db_student:
         raise HTTPException(
@@ -39,12 +39,12 @@ def create_student(student_data: StudentCreate, db: Session = Depends(get_db)):
     db.refresh(new_student)
     return new_student
 
-# 2. Obtener todos los estudiantes (GET /students) [cite: 41, 44]
+# 2. Obtener todos los estudiantes (GET /students)
 @router.get("/", response_model=List[StudentResponse])
 def get_all_students(db: Session = Depends(get_db)):
     return db.query(StudentDB).all()
 
-# 7. Promedio de notas (GET /students/average) [cite: 61, 64]
+# 3. Promedio de notas (GET /students/average)
 # NOTA: Ponemos esta ruta ANTES de /students/{id} para que FastAPI no confunda la palabra "average" con un ID entero.
 @router.get("/average")
 def get_students_average(db: Session = Depends(get_db)):
@@ -54,18 +54,18 @@ def get_students_average(db: Session = Depends(get_db)):
         return {"average": 0.0, "message": "No hay estudiantes registrados aún."}
     return {"average": round(average, 2)}
 
-# 3. Obtener un estudiante por ID (GET /students/{id}) [cite: 45, 48]
+# 4. Obtener un estudiante por ID (GET /students/{id})
 @router.get("/{id}", response_model=StudentResponse)
 def get_student_by_id(id: int, db: Session = Depends(get_db)):
     student = db.query(StudentDB).filter(StudentDB.id == id).first()
     if not student:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, 
-            detail=f"Estudiante con ID {id} no fue encontrado." # Manejo de errores [cite: 87]
+            detail=f"Estudiante con ID {id} no fue encontrado." # Manejo de errores
         )
     return student
 
-# 4. Actualizar un estudiante (PUT/PATCH /students/{id}) [cite: 49, 51]
+# 5. Actualizar un estudiante (PUT/PATCH /students/{id})
 @router.patch("/{id}", response_model=StudentResponse)
 def update_student(id: int, student_data: StudentUpdate, db: Session = Depends(get_db)):
     student = db.query(StudentDB).filter(StudentDB.id == id).first()
@@ -87,14 +87,14 @@ def update_student(id: int, student_data: StudentUpdate, db: Session = Depends(g
     for key, value in update_fields.items():
         setattr(student, key, value)
         
-    # El requerimiento exige actualizar forzosamente la fecha de modificación [cite: 52, 87]
+    #actualizar forzosamente la fecha de modificación
     student.updated_at = datetime.utcnow()
     
     db.commit()
     db.refresh(student)
     return student
 
-# 5. Eliminar un estudiante (DELETE /students/{id}) [cite: 53, 56]
+# 6. Eliminar un estudiante (DELETE /students/{id})
 @router.delete("/{id}", status_code=status.HTTP_200_OK)
 def delete_student(id: int, db: Session = Depends(get_db)):
     student = db.query(StudentDB).filter(StudentDB.id == id).first()
@@ -107,7 +107,7 @@ def delete_student(id: int, db: Session = Depends(get_db)):
     db.commit()
     return {"message": f"Estudiante con ID {id} eliminado correctamente."}
 
-# 6. Creación masiva (Bulk insert) (POST /students/bulk) [cite: 57, 60]
+# 7. Creación masiva (Bulk insert) (POST /students/bulk)
 @router.post("/bulk", status_code=status.HTTP_201_CREATED)
 def bulk_insert_students(students_list: List[StudentCreate], db: Session = Depends(get_db)):
     inserted_count = 0

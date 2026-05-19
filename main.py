@@ -8,7 +8,7 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="Examen API REST Estudiantes",
-    description="API REST básica para la gestión de estudiantes con persistencia en SQLite e integración HTMX.",
+    description="API REST para la gestión de estudiantes con SQLite e integración HTMX.",
     version="1.0.0"
 )
 

@@ -12,11 +12,11 @@
     <tbody>
         {% for student in students %}
         <tr class="hover:bg-gray-50 transition-colors">
-            <td class="border border-gray-300 p-2 font-bold text-center">{{ student.id }}</td>
-            <td class="border border-gray-300 p-2">{{ student.dni }}</td>
-            <td class="border border-gray-300 p-2">{{ student.name }}</td>
-            <td class="border border-gray-300 p-2 text-center">{{ student.age }}</td>
-            <td class="border border-gray-300 p-2 text-right">{{ student.grade }}</td>
+            <td class="border border-gray-300 p-2 font-bold text-center">{{ student.ID }}</td>
+            <td class="border border-gray-300 p-2">{{ student.DNI }}</td>
+            <td class="border border-gray-300 p-2">{{ student.NAME }}</td>
+            <td class="border border-gray-300 p-2 text-center">{{ student.AGE }}</td>
+            <td class="border border-gray-300 p-2 text-right">{{ student.GRADE }}</td>
             <td class="border border-gray-300 p-2 text-center">
                 {% if student.is_approved %}
                     <span class="text-green-600 font-semibold">Sí</span>
