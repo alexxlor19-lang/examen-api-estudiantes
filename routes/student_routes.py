@@ -5,13 +5,14 @@ from fastapi.templating import Jinja2Templates
 templates = Jinja2Templates(directory="templates")
 
 # routes/student_routes.py
-from fastapi import APIRouter, Depends, HTTPException, status, Request
+from fastapi import APIRouter, Depends, HTTPException, status, Request, BackgroundTasks
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from typing import List
 from datetime import datetime
 
 from database.connection import get_db
+from database.mongoDB import save_audit_log
 from models.student_db import StudentDB
 from models.student_schema import StudentCreate, StudentUpdate, StudentResponse
 
@@ -22,7 +23,7 @@ router = APIRouter(
 
 # 1. Crear un estudiante (POST /students)
 @router.post("/", response_model=StudentResponse, status_code=status.HTTP_201_CREATED)
-def create_student(student_data: StudentCreate, db: Session = Depends(get_db)):
+def create_student(student_data: StudentCreate, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     # Validar si el DNI ya existe (Debe ser único)
     db_student = db.query(StudentDB).filter(StudentDB.dni == student_data.dni).first()
     if db_student:
@@ -37,6 +38,13 @@ def create_student(student_data: StudentCreate, db: Session = Depends(get_db)):
     db.add(new_student)
     db.commit()
     db.refresh(new_student)
+
+    # Registro de auditoría en MongoDB (Background)
+    background_tasks.add_task(
+        save_audit_log, 
+        "CREATE", new_student.id, student_data.model_dump()
+    )
+
     return new_student
 
 # 2. Obtener todos los estudiantes (GET /students)
@@ -67,7 +75,7 @@ def get_student_by_id(id: int, db: Session = Depends(get_db)):
 
 # 5. Actualizar un estudiante (PUT/PATCH /students/{id})
 @router.patch("/{id}", response_model=StudentResponse)
-def update_student(id: int, student_data: StudentUpdate, db: Session = Depends(get_db)):
+def update_student(id: int, student_data: StudentUpdate, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     student = db.query(StudentDB).filter(StudentDB.id == id).first()
     if not student:
         raise HTTPException(
@@ -92,11 +100,18 @@ def update_student(id: int, student_data: StudentUpdate, db: Session = Depends(g
     
     db.commit()
     db.refresh(student)
+
+    # Registro de auditoría en MongoDB
+    background_tasks.add_task(
+        save_audit_log, 
+        "UPDATE", student.id, update_fields
+    )
+
     return student
 
 # 6. Eliminar un estudiante (DELETE /students/{id})
 @router.delete("/{id}", status_code=status.HTTP_200_OK)
-def delete_student(id: int, db: Session = Depends(get_db)):
+def delete_student(id: int, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     student = db.query(StudentDB).filter(StudentDB.id == id).first()
     if not student:
         raise HTTPException(
@@ -105,6 +120,13 @@ def delete_student(id: int, db: Session = Depends(get_db)):
         )
     db.delete(student)
     db.commit()
+
+    # Registro de auditoría en MongoDB
+    background_tasks.add_task(
+        save_audit_log, 
+        "DELETE", id, {"name": student.name, "dni": student.dni}
+    )
+
     return {"message": f"Estudiante con ID {id} eliminado correctamente."}
 
 # 7. Creación masiva (Bulk insert) (POST /students/bulk)
