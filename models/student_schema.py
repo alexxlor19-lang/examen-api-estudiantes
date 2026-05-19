@@ -6,9 +6,9 @@ from datetime import datetime
 # Esquema base: se requiere para CREAR un estudiante (POST)
 class StudentCreate(BaseModel):
     DNI: str = Field(..., min_length=8, max_length=12, description="DNI único del estudiante") [cite: 21, 29]
-    NAME: str = Field(..., min_length=2) [cite: 22, 30]
-    AGE: int = Field(..., ge=0, le=120) [cite: 23, 31]
-    GRADE: float = Field(..., ge=0.0, le=20.0) [cite: 24, 32]
+    NAME: str = Field(..., min_length=2)
+    AGE: int = Field(..., ge=0, le=120) 
+    GRADE: float = Field(..., ge=0.0, le=20.0)
     is_approved: bool = Field(..., description="Estado de aprobación asignado manualmente") [cite: 25, 33]
 
 # Esquema para ACTUALIZAR (PUT/PATCH) - Permite campos opcionales
