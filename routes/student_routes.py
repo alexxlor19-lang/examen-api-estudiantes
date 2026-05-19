@@ -24,27 +24,19 @@ router = APIRouter(
 # 1. Crear un estudiante (POST /students)
 @router.post("/", response_model=StudentResponse, status_code=status.HTTP_201_CREATED)
 def create_student(student_data: StudentCreate, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
-    # Validar si el DNI ya existe (Debe ser único)
     db_student = db.query(StudentDB).filter(StudentDB.dni == student_data.dni).first()
     if db_student:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, 
-            detail="El DNI ya se encuentra registrado."
-        )
+        raise HTTPException(status_code=400, detail="El DNI ya se encuentra registrado.")
     
-    # Crear la instancia del modelo de Base de Datos
     new_student = StudentDB(**student_data.model_dump())
-    
     db.add(new_student)
     db.commit()
     db.refresh(new_student)
-
-    # Registro de auditoría en MongoDB (Background)
-    background_tasks.add_task(
-        save_audit_log, 
-        "CREATE", new_student.id, student_data.model_dump()
-    )
-
+    
+    # 📌 Tarea en segundo plano: Registrar en MongoDB la creación de forma asíncrona
+    log_details = {"dni": new_student.dni, "name": new_student.name}
+    background_tasks.add_task(save_audit_log, "CREATE", new_student.id, log_details)
+    
     return new_student
 
 # 2. Obtener todos los estudiantes (GET /students)
@@ -78,35 +70,20 @@ def get_student_by_id(id: int, db: Session = Depends(get_db)):
 def update_student(id: int, student_data: StudentUpdate, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     student = db.query(StudentDB).filter(StudentDB.id == id).first()
     if not student:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, 
-            detail=f"Estudiante con ID {id} no existe."
-        )
+        raise HTTPException(status_code=404, detail=f"Estudiante con ID {id} no existe.")
     
-    # Extraer solo los campos que el usuario envió para actualizar (ignora los campos None)
     update_fields = student_data.model_dump(exclude_unset=True)
     
-    # Validar si intenta cambiar a un DNI que ya pertenece a OTRO estudiante
-    if "dni" in update_fields:
-        dni_check = db.query(StudentDB).filter(StudentDB.dni == update_fields["dni"], StudentDB.id != id).first()
-        if dni_check:
-            raise HTTPException(status_code=400, detail="El DNI ya está en uso por otro estudiante.")
-
     for key, value in update_fields.items():
         setattr(student, key, value)
         
-    #actualizar forzosamente la fecha de modificación
     student.updated_at = datetime.utcnow()
-    
     db.commit()
     db.refresh(student)
-
-    # Registro de auditoría en MongoDB
-    background_tasks.add_task(
-        save_audit_log, 
-        "UPDATE", student.id, update_fields
-    )
-
+    
+    # 📌 Tarea en segundo plano: Registrar en MongoDB la modificación con los campos alterados
+    background_tasks.add_task(save_audit_log, "UPDATE", student.id, update_fields)
+    
     return student
 
 # 6. Eliminar un estudiante (DELETE /students/{id})
@@ -114,19 +91,17 @@ def update_student(id: int, student_data: StudentUpdate, background_tasks: Backg
 def delete_student(id: int, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     student = db.query(StudentDB).filter(StudentDB.id == id).first()
     if not student:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, 
-            detail=f"Estudiante con ID {id} no existe."
-        )
+        raise HTTPException(status_code=404, detail=f"Estudiante con ID {id} no existe.")
+    
+    # Conservamos los datos básicos para el registro histórico antes del delete
+    log_details = {"dni": student.dni, "name": student.name, "deleted_at_node": "SQLite-Main"}
+    
     db.delete(student)
     db.commit()
-
-    # Registro de auditoría en MongoDB
-    background_tasks.add_task(
-        save_audit_log, 
-        "DELETE", id, {"name": student.name, "dni": student.dni}
-    )
-
+    
+    # 📌 Tarea en segundo plano: Registrar en MongoDB la baja
+    background_tasks.add_task(save_audit_log, "DELETE", id, log_details)
+    
     return {"message": f"Estudiante con ID {id} eliminado correctamente."}
 
 # 7. Creación masiva (Bulk insert) (POST /students/bulk)
