@@ -6,11 +6,11 @@ from database.connection import Base
 class StudentDB(Base):
     __tablename__ = "students"
 
-    ID = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    DNI = Column(String, unique=True, nullable=False, index=True) # Obligatorio y único
-    NAME = Column(String, nullable=False)
-    AGE = Column(Integer, nullable=False)
-    GRADE = Column(Float, nullable=False)
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    dni = Column(String, unique=True, nullable=False, index=True) # Obligatorio y único
+    name = Column(String, nullable=False)
+    age = Column(Integer, nullable=False)
+    grade = Column(Float, nullable=False)
     is_approved = Column(Boolean, default=False, nullable=False) # No automático
     
     #marcas de tiempo
