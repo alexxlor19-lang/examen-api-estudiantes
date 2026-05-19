@@ -5,11 +5,11 @@ from datetime import datetime
 
 # Esquema base: se requiere para CREAR un estudiante (POST)
 class StudentCreate(BaseModel):
-    DNI: str = Field(..., min_length=8, max_length=12, description="DNI único del estudiante") [cite: 21, 29]
+    DNI: str = Field(..., min_length=8, max_length=12, description="DNI único del estudiante")
     NAME: str = Field(..., min_length=2)
     AGE: int = Field(..., ge=0, le=120) 
     GRADE: float = Field(..., ge=0.0, le=20.0)
-    is_approved: bool = Field(..., description="Estado de aprobación asignado manualmente") [cite: 25, 33]
+    is_approved: bool = Field(..., description="Estado de aprobación asignado manualmente")
 
 # Esquema para ACTUALIZAR (PUT/PATCH) - Permite campos opcionales
 class StudentUpdate(BaseModel):
@@ -21,14 +21,14 @@ class StudentUpdate(BaseModel):
 
 # Esquema de RESPUESTA: la API devuelve (incluye ID y timestamps)
 class StudentResponse(BaseModel):
-    ID: int [cite: 20]
-    DNI: str [cite: 21]
-    NAME: str [cite: 22]
-    AGE: int [cite: 23]
-    GRADE: float [cite: 24]
-    is_approved: bool [cite: 25]
-    created_at: datetime [cite: 26]
-    updated_at: datetime [cite: 27]
+    ID: int
+    DNI: str
+    NAME: str
+    AGE: int 
+    GRADE: float
+    is_approved: bool 
+    created_at: datetime
+    updated_at: datetime
 
     class Config:
         from_attributes = True  # Permite mapear objetos de SQLAlchemy a JSON
