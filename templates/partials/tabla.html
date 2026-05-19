@@ -1,0 +1,34 @@
+<table class="table-auto w-full border-collapse border border-gray-300 shadow-md rounded">
+    <thead>
+        <tr class="bg-gray-200 text-left text-gray-700">
+            <th class="border border-gray-300 p-2">ID</th>
+            <th class="border border-gray-300 p-2">DNI</th>
+            <th class="border border-gray-300 p-2">Nombre</th>
+            <th class="border border-gray-300 p-2">Edad</th>
+            <th class="border border-gray-300 p-2">Nota</th>
+            <th class="border border-gray-300 p-2">Aprobado</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for student in students %}
+        <tr class="hover:bg-gray-50 transition-colors">
+            <td class="border border-gray-300 p-2 font-bold text-center">{{ student.id }}</td>
+            <td class="border border-gray-300 p-2">{{ student.dni }}</td>
+            <td class="border border-gray-300 p-2">{{ student.name }}</td>
+            <td class="border border-gray-300 p-2 text-center">{{ student.age }}</td>
+            <td class="border border-gray-300 p-2 text-right">{{ student.grade }}</td>
+            <td class="border border-gray-300 p-2 text-center">
+                {% if student.is_approved %}
+                    <span class="text-green-600 font-semibold">Sí</span>
+                {% else %}
+                    <span class="text-red-500 font-semibold">No</span>
+                {% endif %}
+            </td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="6" class="text-center p-4 text-gray-500">No hay estudiantes en la base de datos.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
