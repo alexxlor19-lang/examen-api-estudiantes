@@ -1,3 +1,9 @@
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
+
+# Configuramos la ruta hacia la carpeta de las plantillas HTML
+templates = Jinja2Templates(directory="templates")
+
 # routes/student_routes.py
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
