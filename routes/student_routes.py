@@ -132,3 +132,10 @@ def bulk_insert_students(students_list: List[StudentCreate], db: Session = Depen
         "registros_insertados": inserted_count,
         "errores": errors
     }
+
+# 8. Renderizar tabla HTMX (Fragmento / Partial) (GET /students/table) [cite: 65, 72]
+@router.get("/table", response_class=HTMLResponse)
+def get_students_table_partial(request: any, db: Session = Depends(get_db)):
+    students = db.query(StudentDB).all()
+    # Enviamos los datos recolectados de la BD hacia la plantilla HTML parcial
+    return templates.TemplateResponse("partials/tabla.html", {"request": request, "students": students})
