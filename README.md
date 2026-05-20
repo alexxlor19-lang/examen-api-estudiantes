@@ -14,14 +14,69 @@ El sistema opera bajo un flujo híbrido diseñado para garantizar alta disponibi
 
 ---
 
+## Requisitos Previos
+
+* Python 3.12 o superior
+* Cuenta en MongoDB Atlas (para el log de eventos)
+
+## Instalación y Configuración
+
+1. **Clonar el repositorio:**
+   ```bash
+   git clone <url-del-repositorio>
+   cd examen-api-estudiantes
+   ```
+
+2. **Crear y activar entorno virtual:**
+   ```bash
+   python -m venv venv
+   # En Windows:
+   .\venv\Scripts\activate
+   # En Linux/macOS:
+   source venv/bin/activate
+   ```
+
+3. **Instalar dependencias:**
+   ```bash
+   pip install fastapi uvicorn sqlalchemy motor jinja2 pydantic-settings
+   ```
+
+4. **Variables de Entorno:**
+   Crea un archivo `.env` en la raíz con las siguientes credenciales:
+   ```env
+   MONGO_URI=mongodb+srv://<usuario>:<password>@cluster.mongodb.net/
+   DB_NAME=estudiantes_logs
+   ```
+
+## Ejecución
+
+Para iniciar el servidor de desarrollo:
+```bash
+uvicorn main:app --reload
+```
+La documentación interactiva estará disponible en `http://127.0.0.1:8000/docs`.
+
+---
+
 ## Herramientas Utilizadas
 
 * **Lenguaje:** Python 3.12+
-* **Framework Backend:** FastAPI (Validación estricta mediante Pydantic v2) 
+* **Framework Backend:** FastAPI (Validación mediante Pydantic v2) 
 * **Base de Datos Relacional:** SQLite (Persistencia local automática)
 * **Base de Datos NoSQL:** MongoDB Atlas (Despliegue web en la nube)
 * **Conector Asíncrono Mongo:** Motor (AsyncIOMotorClient)
 * **Motor de Plantillas:** Jinja2 (Para renderizado de componentes HTMX) 
+
+---
+
+## Endpoints Principales
+
+* `GET /students/`: Listado completo de estudiantes.
+* `POST /students/`: Registro de nuevo estudiante (Dispara log en MongoDB).
+* `GET /students/{id}`: Detalle de un estudiante.
+* `PATCH /students/{id}`: Actualización parcial.
+* `DELETE /students/{id}`: Eliminación de registro.
+* `GET /students/table/html`: Endpoint para **HTMX** que retorna el fragmento de tabla.
 
 ---
 
